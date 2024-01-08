@@ -3,12 +3,10 @@ public class App {
         ConexionBD conexionBD= ConexionBD.getConexionBD();
         
         System.out.println(
-            conexionBD.getConnection().isValid(200)?"Existe conexión!"
-            :
-            "La conexion no está creada :("
+            conexionBD.getConnection().isValid(200)?"Existe conexión!":"La conexion no está creada :("
         );
-        
-
+        CreadorBD.crearTablas();
+        GeneradorBD.insertarDatosEnLote();
         conexionBD.cerrarConexion();
     }
 }
