@@ -12,7 +12,7 @@ public class CreadorBD {
             // Tabla de regiones
             statement.execute("CREATE TABLE IF NOT EXISTS Regiones ("
                     + "id INT PRIMARY KEY AUTO_INCREMENT, "
-                    + "nombre VARCHAR(255) NOT NULL, ");
+                    + "nombre VARCHAR(255) NOT NULL)");
 
             // Tabla de servidores
             statement.execute("CREATE TABLE IF NOT EXISTS Servidores ("
@@ -51,7 +51,7 @@ public class CreadorBD {
                     + "nombre VARCHAR(255) NOT NULL, "
                     + "ancho INT NOT NULL, "
                     + "alto INT NOT NULL, "
-                    + "mapa_id INT, "
+                    + "mapa_id INT NOT NULL, "
                     + "FOREIGN KEY (mapa_id) REFERENCES Mapas(id))");
 
             System.out.println("Tablas creadas con éxito.");
