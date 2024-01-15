@@ -9,10 +9,33 @@ public class ConexionBD {
     private static String DATABASE="dantebd";
     private static String USER="dante";
     private static String PASSWORD="abc123.";
-    private static ConexionBD conexionBD;
+    private static ConexionBD conexionBDInstance;
     private Connection conn;
 
     private ConexionBD(){
+        abrirConexion();
+    }
+
+    public static ConexionBD getConexionBDInstance (){
+        if (conexionBDInstance == null){
+            conexionBDInstance = new ConexionBD();
+        }
+        return conexionBDInstance;
+    }
+
+    public Connection getConnection(){
+        try {
+            if(conn.isClosed()){
+                abrirConexion();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return conn;
+    }
+
+    private void abrirConexion(){
         Properties propiedades = new Properties();
         propiedades.put("user",USER);
         propiedades.put("password",PASSWORD);
@@ -21,17 +44,6 @@ public class ConexionBD {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    public static ConexionBD getConexionBD (){
-        if (conexionBD == null){
-            conexionBD = new ConexionBD();
-        }
-        return conexionBD;
-    }
-
-    public Connection getConnection(){
-        return conn;
     }
 
     public void cerrarConexion(){

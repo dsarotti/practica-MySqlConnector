@@ -6,7 +6,7 @@ import java.util.Random;
 public class GeneradorBD {
 
     public static void insertarDatosEnLote() {
-        ConexionBD conexionBD = ConexionBD.getConexionBD();
+        ConexionBD conexionBD = ConexionBD.getConexionBDInstance();
         Connection conexion = conexionBD.getConnection();
 
         try {
@@ -26,8 +26,9 @@ public class GeneradorBD {
 
         } catch (SQLException e) {
             e.printStackTrace();
+            System.out.println("Error");
         } finally {
-            conexionBD.cerrarConexion();
+            //conexionBD.cerrarConexion();
         }
     }
 
