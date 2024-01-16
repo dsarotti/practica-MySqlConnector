@@ -5,112 +5,141 @@ import java.util.Random;
 
 public class GeneradorBD {
 
-    public static void insertarDatosEnLote() {
-        ConexionBD conexionBD = ConexionBD.getConexionBDInstance();
-        Connection conexion = conexionBD.getConnection();
+    private static final String[] REGIONES = { "EUROPA", "AMERICA", "ASIA" };
+    private static final String[] SERVIDORES = { "EUW", "EUE", "EUS", "AMW", "AME", "AMC", "ASW", "ASE", "ASS", "ASC" };
 
-        try {
-            // Inserción de servidores
-            insertarServidoresEnLote(conexion, 10, 3);
+    private static final int NUM_SERVIDORES = SERVIDORES.length;
+    private static final int NUM_REGIONES = REGIONES.length;
+    private static final int NUM_USUARIOS = 50;
+    private static final int NUM_PERSONAJES = 100;
+    private static final int NUM_MAPAS = 20;
+    private static final int MAX_ZONAS_POR_MAPA = 5;
 
-            // Inserción de usuarios
-            insertarUsuariosEnLote(conexion, 50);
+    private final ConexionBD conexionBD;
 
-            // Inserción de personajes
-            insertarPersonajesEnLote(conexion, 100);
+    public GeneradorBD() {
+        this.conexionBD = ConexionBD.getConexionBDInstance();
+    }
 
-            // Inserción de mapas y zonas
-            insertarMapasYZonasEnLote(conexion, 20, 5);
+    public void generarDatos() {
+        insertarRegiones();
+        insertarServidores();
+        insertarUsuarios();
+        insertarPersonajes();
+        insertarMapasConZonas();
+    }
 
-            System.out.println("Datos insertados en lote con éxito.");
+    private void insertarRegiones() {
+        try (Connection conexion = conexionBD.getConnection();
+                PreparedStatement statement = conexion.prepareStatement("INSERT INTO Regiones (nombre) VALUES (?)")) {
+
+            for (String region : REGIONES) {
+                statement.setString(1, region);
+                statement.addBatch();
+            }
+            statement.executeBatch();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void insertarServidores() {
+        Random random = new Random();
+        try (Connection conexion = conexionBD.getConnection();
+                PreparedStatement statement = conexion
+                        .prepareStatement("INSERT INTO Servidores (nombre, region_id) VALUES (?, ?)")) {
+
+            for (int i = 0; i < NUM_SERVIDORES; i++) {
+                statement.setString(1, SERVIDORES[i]);
+                statement.setInt(2, ((i + 1) % NUM_REGIONES ) + 1); // Selecciona una región al azar
+                statement.addBatch();
+            }
+            statement.executeBatch();
 
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println("Error");
-        } finally {
-            //conexionBD.cerrarConexion();
         }
     }
 
-    private static void insertarServidoresEnLote(Connection conexion, int cantidadServidores, int cantidadRegiones) throws SQLException {
-        String sql = "INSERT INTO Servidores (nombre, region) VALUES (?, ?)";
-        try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
-            String[] regiones = {"America", "Europa", "Asia"};
+    private void insertarUsuarios() {
+        Random random = new Random();
+        try (Connection conexion = conexionBD.getConnection();
+                PreparedStatement statement = conexion
+                        .prepareStatement("INSERT INTO Usuarios (nombre, codigo_uniq) VALUES (?, ?)")) {
 
-            Random random = new Random();
-
-            for (int i = 0; i < cantidadServidores; i++) {
-                preparedStatement.setString(1, "Servidor" + (i + 1));
-                preparedStatement.setString(2, regiones[random.nextInt(cantidadRegiones)]);
-                preparedStatement.addBatch();
+            for (int i = 1; i <= NUM_USUARIOS; i++) {
+                statement.setString(1, "Usuario" + i);
+                statement.setString(2, generarCodigoUnico());
+                statement.addBatch();
             }
+            statement.executeBatch();
 
-            preparedStatement.executeBatch();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    private static void insertarUsuariosEnLote(Connection conexion, int cantidadUsuarios) throws SQLException {
-        String sql = "INSERT INTO Usuarios (nombre, codigo_uniq) VALUES (?, ?)";
-        try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
-            for (int i = 0; i < cantidadUsuarios; i++) {
-                preparedStatement.setString(1, "Usuario" + (i + 1));
-                preparedStatement.setString(2, generarCodigoUnico());
-                preparedStatement.addBatch();
+    private void insertarPersonajes() {
+        Random random = new Random();
+        try (Connection conexion = conexionBD.getConnection();
+                PreparedStatement statement = conexion.prepareStatement(
+                        "INSERT INTO Personajes (nombre, usuario_id, servidor_id) VALUES (?, ?, ?)")) {
+
+            for (int i = 1; i <= NUM_PERSONAJES; i++) {
+                statement.setString(1, "Personaje" + i);
+                statement.setInt(2, random.nextInt(NUM_USUARIOS) + 1); // Selecciona un usuario al azar
+                statement.setInt(3, random.nextInt(NUM_SERVIDORES) + 1); // Selecciona un servidor al azar
+                statement.addBatch();
             }
+            statement.executeBatch();
 
-            preparedStatement.executeBatch();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    private static void insertarPersonajesEnLote(Connection conexion, int cantidadPersonajes) throws SQLException {
-        String sql = "INSERT INTO Personajes (nombre, usuario_id) VALUES (?, ?)";
-        try (PreparedStatement preparedStatement = conexion.prepareStatement(sql)) {
-            for (int i = 0; i < cantidadPersonajes; i++) {
-                preparedStatement.setString(1, "Personaje" + (i + 1));
-                preparedStatement.setInt(2, i % 50 + 1); // Asigna usuarios de forma circular
-                preparedStatement.addBatch();
-            }
-            preparedStatement.executeBatch();
-        }
-    }
+    private void insertarMapasConZonas() {
+        Random random = new Random();
+        try (Connection conexion = conexionBD.getConnection();
+                PreparedStatement statementMapas = conexion
+                        .prepareStatement("INSERT INTO Mapas (nombre, dificultad, servidor_id) VALUES (?, ?, ?)");
+                PreparedStatement statementZonas = conexion
+                        .prepareStatement("INSERT INTO Zonas (nombre, ancho, alto, mapa_id) VALUES (?, ?, ?, ?)")) {
 
-    private static void insertarMapasYZonasEnLote(Connection conexion, int cantidadMapas, int cantidadZonas) throws SQLException {
-        String mapaSQL = "INSERT INTO Mapas (nombre, dificultad, servidor_id) VALUES (?, ?, ?)";
-        String zonaSQL = "INSERT INTO Zonas (nombre, ancho, alto, mapa_id) VALUES (?, ?, ?, ?)";
+            for (int i = 1; i <= NUM_MAPAS; i++) {
+                statementMapas.setString(1, "Mapa" + i);
+                statementMapas.setInt(2, random.nextInt(10)); // Dificultad entre 0 y 9
+                statementMapas.setInt(3, random.nextInt(NUM_SERVIDORES) + 1); // Selecciona un servidor al azar
+                statementMapas.addBatch();
 
-        try (PreparedStatement preparedStatementMapa = conexion.prepareStatement(mapaSQL);
-             PreparedStatement preparedStatementZona = conexion.prepareStatement(zonaSQL)) {
-
-            Random random = new Random();
-
-            for (int i = 0; i < cantidadMapas; i++) {
-                preparedStatementMapa.setString(1, "Mapa" + (i + 1));
-                preparedStatementMapa.setInt(2, random.nextInt(10)); // Dificultad aleatoria
-                preparedStatementMapa.setInt(3, random.nextInt(10) + 1); // Servidor aleatorio
-
-                preparedStatementMapa.addBatch();
-
-                for (int j = 0; j < cantidadZonas; j++) {
-                    preparedStatementZona.setString(1, "Zona" + (i * cantidadZonas + j + 1));
-                    preparedStatementZona.setInt(2, random.nextInt(100) + 1); // Ancho aleatorio
-                    preparedStatementZona.setInt(3, random.nextInt(100) + 1); // Alto aleatorio
-                    preparedStatementZona.setInt(4, i + 1); // Asigna mapa actual
-
-                    preparedStatementZona.addBatch();
+                int numZonas = random.nextInt(MAX_ZONAS_POR_MAPA) + 1; // Entre 1 y MAX_ZONAS_POR_MAPA
+                for (int j = 1; j <= numZonas; j++) {
+                    statementZonas.setString(1, "Zona" + j + "Mapa" + i);
+                    statementZonas.setInt(2, random.nextInt(100)); // Ancho
+                    statementZonas.setInt(3, random.nextInt(100)); // Alto
+                    statementZonas.setInt(4, i); // Mapa_id
+                    statementZonas.addBatch();
                 }
             }
+            statementMapas.executeBatch();
+            statementZonas.executeBatch();
 
-            preparedStatementMapa.executeBatch();
-            preparedStatementZona.executeBatch();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    private static String generarCodigoUnico() {
+    private String generarCodigoUnico() {
         Random random = new Random();
-        StringBuilder codigoUnico = new StringBuilder();
+        StringBuilder codigo = new StringBuilder();
         for (int i = 0; i < 4; i++) {
-            codigoUnico.append(random.nextInt(10));
+            codigo.append(random.nextInt(10));
         }
-        return codigoUnico.toString();
+        return codigo.toString();
+    }
+
+    public static void main(String[] args) {
+        GeneradorBD generadorBD = new GeneradorBD();
+        generadorBD.generarDatos();
     }
 }
