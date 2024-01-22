@@ -25,7 +25,7 @@ public class CreadorBD {
             statement.execute("CREATE TABLE IF NOT EXISTS Usuarios ("
                     + "id INT PRIMARY KEY AUTO_INCREMENT, "
                     + "nombre VARCHAR(255) NOT NULL, "
-                    + "codigo_uniq VARCHAR(4) NOT NULL)");
+                    + "codigo_uniq VARCHAR(4) NOT NULL UNIQUE)");
 
             // Tabla de personajes
             statement.execute("CREATE TABLE IF NOT EXISTS Personajes ("

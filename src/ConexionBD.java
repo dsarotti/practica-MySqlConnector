@@ -25,7 +25,7 @@ public class ConexionBD {
 
     public Connection getConnection(){
         try {
-            if(conn.isClosed()){
+            if(conn.isClosed()||conn==null){
                 abrirConexion();
             }
         } catch (SQLException e) {

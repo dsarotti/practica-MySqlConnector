@@ -7,8 +7,9 @@ public class App {
             conexionBD.getConnection().isValid(200)?"Existe conexión!":"La conexion no está creada :("
         );
 
-       // CreadorBD.crearTablas();
-        new GeneradorBD().generarDatos();
+        CreadorBD.crearTablas();
+        GeneradorBD.generarDatos();
         conexionBD.cerrarConexion();
+        
     }
 }

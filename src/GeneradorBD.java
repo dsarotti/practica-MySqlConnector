@@ -1,6 +1,10 @@
+import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 public class GeneradorBD {
@@ -15,23 +19,22 @@ public class GeneradorBD {
     private static final int NUM_MAPAS = 20;
     private static final int MAX_ZONAS_POR_MAPA = 5;
 
-    private final ConexionBD conexionBD;
-
-    public GeneradorBD() {
-        this.conexionBD = ConexionBD.getConexionBDInstance();
+    public static void generarDatos() {
+        ConexionBD conexionBD = ConexionBD.getConexionBDInstance();
+        insertarRegiones(conexionBD);
+        insertarServidores(conexionBD);
+        insertarUsuarios(conexionBD);
+        insertarPersonajes(conexionBD);
+        insertarMapasConZonas(conexionBD);
     }
 
-    public void generarDatos() {
-        insertarRegiones();
-        insertarServidores();
-        insertarUsuarios();
-        insertarPersonajes();
-        insertarMapasConZonas();
-    }
+    private static void insertarRegiones(ConexionBD conexionBD) {
+        Connection conexion = null;
+        PreparedStatement statement = null;
 
-    private void insertarRegiones() {
-        try (Connection conexion = conexionBD.getConnection();
-                PreparedStatement statement = conexion.prepareStatement("INSERT INTO Regiones (nombre) VALUES (?)")) {
+        try {
+            conexion = conexionBD.getConnection();
+            statement = conexion.prepareStatement("INSERT INTO Regiones (nombre) VALUES (?)");
 
             for (String region : REGIONES) {
                 statement.setString(1, region);
@@ -40,50 +43,117 @@ public class GeneradorBD {
             statement.executeBatch();
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            // Cierre de recursos
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conexion != null) {
+                try {
+                    conexion.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
-    private void insertarServidores() {
+    private static void insertarServidores(ConexionBD conexionBD) {
         Random random = new Random();
-        try (Connection conexion = conexionBD.getConnection();
-                PreparedStatement statement = conexion
-                        .prepareStatement("INSERT INTO Servidores (nombre, region_id) VALUES (?, ?)")) {
+        Connection conexion = null;
+        PreparedStatement statement = null;
+
+        try {
+            conexion = conexionBD.getConnection();
+            statement = conexion.prepareStatement("INSERT INTO Servidores (nombre, region_id) VALUES (?, ?)");
 
             for (int i = 0; i < NUM_SERVIDORES; i++) {
                 statement.setString(1, SERVIDORES[i]);
-                statement.setInt(2, ((i + 1) % NUM_REGIONES ) + 1); // Selecciona una región al azar
+                statement.setInt(2, ((i + 1) % NUM_REGIONES) + 1); // Selecciona una región al azar
                 statement.addBatch();
             }
             statement.executeBatch();
 
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            // Cierre de recursos
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conexion != null) {
+                try {
+                    conexion.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
-    private void insertarUsuarios() {
-        Random random = new Random();
-        try (Connection conexion = conexionBD.getConnection();
-                PreparedStatement statement = conexion
-                        .prepareStatement("INSERT INTO Usuarios (nombre, codigo_uniq) VALUES (?, ?)")) {
+    private static void insertarUsuarios(ConexionBD conexionBD) {
+        List<String> nombresReales = Arrays.asList(
+                "ANTONIO", "MANUEL", "JOSE", "FRANCISCO", "DAVID", "JUAN", "JAVIER", "DANIEL", "JOSE ANTONIO",
+                "FRANCISCO JAVIER", "JOSE LUIS", "CARLOS", "ALEJANDRO", "JESUS", "MIGUEL", "JOSE MANUEL",
+                "MIGUEL ANGEL", "RAFAEL", "PABLO", "PEDRO", "ANGEL", "SERGIO", "FERNANDO", "JOSE MARIA",
+                "JORGE", "LUIS", "ALBERTO", "ALVARO", "JUAN CARLOS", "ADRIAN", "DIEGO", "JUAN JOSE", "RAUL",
+                "IVAN", "RUBEN", "JUAN ANTONIO", "OSCAR", "ENRIQUE", "RAMON", "ANDRES", "JUAN MANUEL",
+                "SANTIAGO", "VICENTE", "MARIO", "VICTOR", "JOAQUIN", "EDUARDO", "ROBERTO", "MARCOS",
+                "JAIME");
 
-            for (int i = 1; i <= NUM_USUARIOS; i++) {
-                statement.setString(1, "Usuario" + i);
-                statement.setString(2, generarCodigoUnico());
+        Connection conexion = null;
+        PreparedStatement statement = null;
+
+        try {
+            conexion = conexionBD.getConnection();
+            statement = conexion.prepareStatement("INSERT INTO Usuarios (nombre, codigo_uniq) VALUES (?, ?)");
+
+            for (String nombre : nombresReales) {
+                statement.setString(1, nombre);
+                statement.setString(2, generarCodigoUnico(conexionBD));
                 statement.addBatch();
             }
+
             statement.executeBatch();
 
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            // Cierre de recursos
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conexion != null) {
+                try {
+                    conexion.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
-    private void insertarPersonajes() {
+    private static void insertarPersonajes(ConexionBD conexionBD) {
         Random random = new Random();
-        try (Connection conexion = conexionBD.getConnection();
-                PreparedStatement statement = conexion.prepareStatement(
-                        "INSERT INTO Personajes (nombre, usuario_id, servidor_id) VALUES (?, ?, ?)")) {
+        Connection conexion = null;
+        PreparedStatement statement = null;
+
+        try {
+            conexion = conexionBD.getConnection();
+            statement = conexion
+                    .prepareStatement("INSERT INTO Personajes (nombre, usuario_id, servidor_id) VALUES (?, ?, ?)");
 
             for (int i = 1; i <= NUM_PERSONAJES; i++) {
                 statement.setString(1, "Personaje" + i);
@@ -95,16 +165,37 @@ public class GeneradorBD {
 
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            // Cierre de recursos
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conexion != null) {
+                try {
+                    conexion.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
-    private void insertarMapasConZonas() {
+    private static void insertarMapasConZonas(ConexionBD conexionBD) {
         Random random = new Random();
-        try (Connection conexion = conexionBD.getConnection();
-                PreparedStatement statementMapas = conexion
-                        .prepareStatement("INSERT INTO Mapas (nombre, dificultad, servidor_id) VALUES (?, ?, ?)");
-                PreparedStatement statementZonas = conexion
-                        .prepareStatement("INSERT INTO Zonas (nombre, ancho, alto, mapa_id) VALUES (?, ?, ?, ?)")) {
+        Connection conexion = null;
+        PreparedStatement statementMapas = null;
+        PreparedStatement statementZonas = null;
+
+        try {
+            conexion = conexionBD.getConnection();
+            statementMapas = conexion
+                    .prepareStatement("INSERT INTO Mapas (nombre, dificultad, servidor_id) VALUES (?, ?, ?)");
+            statementZonas = conexion
+                    .prepareStatement("INSERT INTO Zonas (nombre, ancho, alto, mapa_id) VALUES (?, ?, ?, ?)");
 
             for (int i = 1; i <= NUM_MAPAS; i++) {
                 statementMapas.setString(1, "Mapa" + i);
@@ -126,20 +217,87 @@ public class GeneradorBD {
 
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            // Cierre de recursos
+            if (statementMapas != null) {
+                try {
+                    statementMapas.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (statementZonas != null) {
+                try {
+                    statementZonas.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conexion != null) {
+                try {
+                    conexion.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
-    private String generarCodigoUnico() {
+    private static String generarCodigoUnico(ConexionBD conexionBD) {
+        String codigo = "";
+        Connection conexion = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        Boolean salir = false;
+            try {
+                while (!salir) {
+                    conexion = conexionBD.getConnection();
+                    statement = conexion.prepareStatement("SELECT COUNT(*) FROM Usuarios WHERE codigo_uniq = ?");
+                    codigo = generarCodigo();
+                    statement.setString(1, codigo);
+                    resultSet = statement.executeQuery();
+
+                    if (resultSet.next()) {
+                        int count = resultSet.getInt(1);
+                        salir = !(count > 0);
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                // Cierre de recursos
+                if (resultSet != null) {
+                    try {
+                        resultSet.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+                // if (statement != null) {
+                //     try {
+                //         statement.close();
+                //     } catch (SQLException e) {
+                //         e.printStackTrace();
+                //     }
+                // }
+                if (conexion != null) {
+                    try {
+                        conexion.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        return codigo;
+    }
+
+    private static String generarCodigo() {
         Random random = new Random();
         StringBuilder codigo = new StringBuilder();
+
         for (int i = 0; i < 4; i++) {
             codigo.append(random.nextInt(10));
         }
         return codigo.toString();
-    }
-
-    public static void main(String[] args) {
-        GeneradorBD generadorBD = new GeneradorBD();
-        generadorBD.generarDatos();
     }
 }
