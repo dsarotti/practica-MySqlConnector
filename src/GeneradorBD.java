@@ -3,6 +3,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -118,7 +119,8 @@ public class GeneradorBD {
 
             for (String nombre : nombresReales) {
                 statement.setString(1, nombre);
-                statement.setString(2, generarCodigoUnico(conexionBD));
+                String codigoUnico = generarCodigoUnico(conexionBD);
+                statement.setString(2, codigoUnico);
                 statement.addBatch();
             }
 
@@ -249,45 +251,48 @@ public class GeneradorBD {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         Boolean salir = false;
-            try {
-                while (!salir) {
-                    conexion = conexionBD.getConnection();
-                    statement = conexion.prepareStatement("SELECT COUNT(*) FROM Usuarios WHERE codigo_uniq = ?");
-                    codigo = generarCodigo();
-                    statement.setString(1, codigo);
-                    resultSet = statement.executeQuery();
+        try {
+            // Genera códigos aleatorios hasta conseguir uno que no exista en la base de
+            // datos.
 
-                    if (resultSet.next()) {
-                        int count = resultSet.getInt(1);
-                        salir = !(count > 0);
-                    }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            } finally {
-                // Cierre de recursos
-                if (resultSet != null) {
-                    try {
-                        resultSet.close();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
-                // if (statement != null) {
-                //     try {
-                //         statement.close();
-                //     } catch (SQLException e) {
-                //         e.printStackTrace();
-                //     }
-                // }
-                if (conexion != null) {
-                    try {
-                        conexion.close();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
+            conexion = conexionBD.getConnection();
+            statement = conexion.prepareStatement("SELECT codigo_uniq FROM Usuarios");
+            resultSet = statement.executeQuery();
+            ArrayList<String> codigosBD = new ArrayList<>();
+            while (resultSet.next()) {
+                codigosBD.add(resultSet.getString(1));
+            }
+
+            while (!salir) {
+                codigo = generarCodigo();
+                salir=true;
+                for (String codigobd : codigosBD) {
+                    if (codigo.equals(codigobd)) {
+                        salir=false;
+                        System.out.println("Encontrada coincidencia!");
+                        break;
                     }
                 }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            // Cierre de recursos
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
         return codigo;
     }
 
