@@ -5,7 +5,7 @@ import java.sql.Statement;
 public class CreadorBD {
 
     public static void crearTablas() {
-        ConexionBD conexionBD = ConexionBD.getConexionBDInstance();
+        Conexion conexionBD = Conexion.getConexionBDInstance();
         try (Connection conexion = conexionBD.getConnection();
                 Statement statement = conexion.createStatement()) {
 

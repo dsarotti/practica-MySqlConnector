@@ -21,7 +21,7 @@ public class GeneradorBD {
     private static final int MAX_ZONAS_POR_MAPA = 5;
 
     public static void generarDatos() {
-        ConexionBD conexionBD = ConexionBD.getConexionBDInstance();
+        Conexion conexionBD = Conexion.getConexionBDInstance();
         insertarRegiones(conexionBD);
         insertarServidores(conexionBD);
         insertarUsuarios(conexionBD);
@@ -29,7 +29,7 @@ public class GeneradorBD {
         insertarMapasConZonas(conexionBD);
     }
 
-    private static void insertarRegiones(ConexionBD conexionBD) {
+    private static void insertarRegiones(Conexion conexionBD) {
         Connection conexion = null;
         PreparedStatement statement = null;
 
@@ -63,7 +63,7 @@ public class GeneradorBD {
         }
     }
 
-    private static void insertarServidores(ConexionBD conexionBD) {
+    private static void insertarServidores(Conexion conexionBD) {
         Random random = new Random();
         Connection conexion = null;
         PreparedStatement statement = null;
@@ -100,7 +100,7 @@ public class GeneradorBD {
         }
     }
 
-    private static void insertarUsuarios(ConexionBD conexionBD) {
+    private static void insertarUsuarios(Conexion conexionBD) {
         List<String> nombresReales = Arrays.asList(
                 "ANTONIO", "MANUEL", "JOSE", "FRANCISCO", "DAVID", "JUAN", "JAVIER", "DANIEL", "JOSE ANTONIO",
                 "FRANCISCO JAVIER", "JOSE LUIS", "CARLOS", "ALEJANDRO", "JESUS", "MIGUEL", "JOSE MANUEL",
@@ -147,7 +147,7 @@ public class GeneradorBD {
         }
     }
 
-    private static void insertarPersonajes(ConexionBD conexionBD) {
+    private static void insertarPersonajes(Conexion conexionBD) {
         Random random = new Random();
         Connection conexion = null;
         PreparedStatement statement = null;
@@ -186,7 +186,7 @@ public class GeneradorBD {
         }
     }
 
-    private static void insertarMapasConZonas(ConexionBD conexionBD) {
+    private static void insertarMapasConZonas(Conexion conexionBD) {
         Random random = new Random();
         Connection conexion = null;
         PreparedStatement statementMapas = null;
@@ -245,7 +245,7 @@ public class GeneradorBD {
         }
     }
 
-    private static String generarCodigoUnico(ConexionBD conexionBD) {
+    private static String generarCodigoUnico(Conexion conexionBD) {
         String codigo = "";
         Connection conexion = null;
         PreparedStatement statement = null;

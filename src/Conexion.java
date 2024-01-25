@@ -3,22 +3,22 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-public class ConexionBD {
+public class Conexion {
     private static String SERVER="localhost";
     private static String PUERTO="3306";
     private static String DATABASE="dantebd";
     private static String USER="dantebd";
     private static String PASSWORD="abc123.";
-    private static ConexionBD conexionBDInstance;
+    private static Conexion conexionBDInstance;
     private Connection conn;
 
-    private ConexionBD(){
+    private Conexion(){
         abrirConexion();
     }
 
-    public static ConexionBD getConexionBDInstance (){
+    public static Conexion getConexionBDInstance (){
         if (conexionBDInstance == null){
-            conexionBDInstance = new ConexionBD();
+            conexionBDInstance = new Conexion();
         }
         return conexionBDInstance;
     }
