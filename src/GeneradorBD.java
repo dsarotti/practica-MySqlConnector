@@ -1,4 +1,3 @@
-import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,6 +7,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Clase que genera los datos para la base de datos y los inserta en lotes.
+ */
 public class GeneradorBD {
 
     private static final String[] REGIONES = { "EUROPA", "AMERICA", "ASIA" };
@@ -20,21 +22,27 @@ public class GeneradorBD {
     private static final int NUM_MAPAS = 20;
     private static final int MAX_ZONAS_POR_MAPA = 5;
 
+    /**
+     * Realiza la inserciones de los datos definidos en esta clase.
+     */
     public static void generarDatos() {
-        ConexionBD conexionBD = ConexionBD.getConexionBDInstance();
-        insertarRegiones(conexionBD);
-        insertarServidores(conexionBD);
-        insertarUsuarios(conexionBD);
-        insertarPersonajes(conexionBD);
-        insertarMapasConZonas(conexionBD);
+
+        insertarRegiones();
+        insertarServidores();
+        insertarUsuarios();
+        insertarPersonajes();
+        insertarMapasConZonas();
     }
 
-    private static void insertarRegiones(ConexionBD conexionBD) {
+    /**
+     * Inserta las regiones en la base de datos.
+     */
+    private static void insertarRegiones() {
         Connection conexion = null;
         PreparedStatement statement = null;
 
         try {
-            conexion = conexionBD.getConnection();
+            conexion = ConexionBD.getConexionBDInstance().getConnection();
             statement = conexion.prepareStatement("INSERT INTO Regiones (nombre) VALUES (?)");
 
             for (String region : REGIONES) {
@@ -42,6 +50,7 @@ public class GeneradorBD {
                 statement.addBatch();
             }
             statement.executeBatch();
+
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
@@ -53,28 +62,23 @@ public class GeneradorBD {
                     e.printStackTrace();
                 }
             }
-            if (conexion != null) {
-                try {
-                    conexion.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 
-    private static void insertarServidores(ConexionBD conexionBD) {
-        Random random = new Random();
+    /**
+     * Inserta los servidores en la base de datos
+     */
+    private static void insertarServidores() {
         Connection conexion = null;
         PreparedStatement statement = null;
 
         try {
-            conexion = conexionBD.getConnection();
+            conexion = ConexionBD.getConexionBDInstance().getConnection();
             statement = conexion.prepareStatement("INSERT INTO Servidores (nombre, region_id) VALUES (?, ?)");
 
             for (int i = 0; i < NUM_SERVIDORES; i++) {
                 statement.setString(1, SERVIDORES[i]);
-                statement.setInt(2, ((i + 1) % NUM_REGIONES) + 1); // Selecciona una región al azar
+                statement.setInt(2, ((i + 1) % NUM_REGIONES) + 1);
                 statement.addBatch();
             }
             statement.executeBatch();
@@ -90,36 +94,31 @@ public class GeneradorBD {
                     e.printStackTrace();
                 }
             }
-            if (conexion != null) {
-                try {
-                    conexion.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 
-    private static void insertarUsuarios(ConexionBD conexionBD) {
+    /**
+     * Inserta los usuarios en la base de datos
+     */
+    private static void insertarUsuarios() {
         List<String> nombresReales = Arrays.asList(
                 "ANTONIO", "MANUEL", "JOSE", "FRANCISCO", "DAVID", "JUAN", "JAVIER", "DANIEL", "JOSE ANTONIO",
                 "FRANCISCO JAVIER", "JOSE LUIS", "CARLOS", "ALEJANDRO", "JESUS", "MIGUEL", "JOSE MANUEL",
                 "MIGUEL ANGEL", "RAFAEL", "PABLO", "PEDRO", "ANGEL", "SERGIO", "FERNANDO", "JOSE MARIA",
                 "JORGE", "LUIS", "ALBERTO", "ALVARO", "JUAN CARLOS", "ADRIAN", "DIEGO", "JUAN JOSE", "RAUL",
                 "IVAN", "RUBEN", "JUAN ANTONIO", "OSCAR", "ENRIQUE", "RAMON", "ANDRES", "JUAN MANUEL",
-                "SANTIAGO", "VICENTE", "MARIO", "VICTOR", "JOAQUIN", "EDUARDO", "ROBERTO", "MARCOS",
-                "JAIME");
+                "SANTIAGO", "VICENTE", "MARIO", "VICTOR", "JOAQUIN", "EDUARDO", "ROBERTO", "MARCOS", "JAIME");
 
         Connection conexion = null;
         PreparedStatement statement = null;
 
         try {
-            conexion = conexionBD.getConnection();
+            conexion = ConexionBD.getConexionBDInstance().getConnection();
             statement = conexion.prepareStatement("INSERT INTO Usuarios (nombre, codigo_uniq) VALUES (?, ?)");
 
             for (String nombre : nombresReales) {
                 statement.setString(1, nombre);
-                String codigoUnico = generarCodigoUnico(conexionBD);
+                String codigoUnico = generarCodigoUnico();
                 statement.setString(2, codigoUnico);
                 statement.addBatch();
             }
@@ -137,23 +136,19 @@ public class GeneradorBD {
                     e.printStackTrace();
                 }
             }
-            if (conexion != null) {
-                try {
-                    conexion.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 
-    private static void insertarPersonajes(ConexionBD conexionBD) {
+    /**
+     * Inserta los personajes en la base de datos.
+     */
+    private static void insertarPersonajes() {
         Random random = new Random();
         Connection conexion = null;
         PreparedStatement statement = null;
 
         try {
-            conexion = conexionBD.getConnection();
+            conexion = ConexionBD.getConexionBDInstance().getConnection();
             statement = conexion
                     .prepareStatement("INSERT INTO Personajes (nombre, usuario_id, servidor_id) VALUES (?, ?, ?)");
 
@@ -176,24 +171,20 @@ public class GeneradorBD {
                     e.printStackTrace();
                 }
             }
-            if (conexion != null) {
-                try {
-                    conexion.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 
-    private static void insertarMapasConZonas(ConexionBD conexionBD) {
+    /**
+     * Inserta los mapas y sus zonas en la base de datos
+     */
+    private static void insertarMapasConZonas() {
         Random random = new Random();
         Connection conexion = null;
         PreparedStatement statementMapas = null;
         PreparedStatement statementZonas = null;
 
         try {
-            conexion = conexionBD.getConnection();
+            conexion = ConexionBD.getConexionBDInstance().getConnection();
             statementMapas = conexion
                     .prepareStatement("INSERT INTO Mapas (nombre, dificultad, servidor_id) VALUES (?, ?, ?)");
             statementZonas = conexion
@@ -235,17 +226,14 @@ public class GeneradorBD {
                     e.printStackTrace();
                 }
             }
-            if (conexion != null) {
-                try {
-                    conexion.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 
-    private static String generarCodigoUnico(ConexionBD conexionBD) {
+    /**
+     * Genera un código de usuario único de 4 dígitos (Que no esté repetido en la abse de datos)
+     * @return el código de 4 dígitos generado.
+     */
+    private static String generarCodigoUnico() {
         String codigo = "";
         Connection conexion = null;
         PreparedStatement statement = null;
@@ -255,7 +243,7 @@ public class GeneradorBD {
             // Genera códigos aleatorios hasta conseguir uno que no exista en la base de
             // datos.
 
-            conexion = conexionBD.getConnection();
+            conexion = ConexionBD.getConexionBDInstance().getConnection();
             statement = conexion.prepareStatement("SELECT codigo_uniq FROM Usuarios");
             resultSet = statement.executeQuery();
             ArrayList<String> codigosBD = new ArrayList<>();
@@ -265,10 +253,10 @@ public class GeneradorBD {
 
             while (!salir) {
                 codigo = generarCodigo();
-                salir=true;
+                salir = true;
                 for (String codigobd : codigosBD) {
                     if (codigo.equals(codigobd)) {
-                        salir=false;
+                        salir = false;
                         System.out.println("Encontrada coincidencia!");
                         break;
                     }
@@ -296,6 +284,10 @@ public class GeneradorBD {
         return codigo;
     }
 
+    /**
+     * Genera un código de 4 dígitos aleatorio
+     * @return un código de 4 dígitos
+     */
     private static String generarCodigo() {
         Random random = new Random();
         StringBuilder codigo = new StringBuilder();
